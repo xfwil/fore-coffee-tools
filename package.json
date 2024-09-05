@@ -6,7 +6,20 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
+  "type": "module",
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "@inquirer/confirm": "^3.1.20",
+    "@inquirer/prompts": "^5.1.0",
+    "chalk": "^5.3.0",
+    "dayjs": "^1.11.13",
+    "dotenv": "^16.4.5",
+    "fetch": "^1.1.0",
+    "inquirer": "^9.3.2",
+    "node-fetch": "^3.3.2",
+    "table": "^6.8.2",
+    "uuidv4": "^6.2.13"
+  }
 }
