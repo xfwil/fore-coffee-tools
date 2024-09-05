@@ -391,8 +391,9 @@ const randomUser = async () => {
   console.log();
   console.log("1. List Accounts");
   console.log("2. Add Manually Accounts ( PIN Required )");
-  console.log("3. Create Account + SMSHub");
-  console.log("4. Check Voucher");
+  console.log("3. Create Account Manual OTP");
+  console.log("4. Create Account + SMSHub");
+  console.log("5. Check Voucher");
   console.log();
 
   const choice = await input({
@@ -611,6 +612,221 @@ const randomUser = async () => {
         return;
       }
     } else if (choice === "3") {
+      console.clear();
+      console.log("Create Account Manual OTP");
+      console.log();
+      const phoneNumber = await input({
+        type: "text",
+        name: "phoneNumber",
+        message: "Enter Phone Number",
+      });
+      const refferalCode = await input({
+        type: "text",
+        name: "refferal",
+        message: "Enter Refferal Code",
+      });
+
+      console.log();
+      if (!phoneNumber || !refferalCode) {
+        console.log("Please enter a valid phone number and refferal code");
+        return;
+      }
+      console.log(`Creating account with refferal code ${refferalCode}`);
+      console.log();
+      const data = await randomUser();
+      if (data && data.results) {
+        const number = phoneNumber.replace("+", "");
+        const { name, gender, email } = data.results[0];
+        console.log(`[+] Phone Number: ${phoneNumber}`);
+
+        const uuid = v4();
+        const token = await getToken(uuid);
+        if (token && token.payload) {
+          const access_token = token.payload.access_token;
+          const refresh_token = token.payload.refresh_token;
+
+          const doCheckPhone = await checkPhone(uuid, access_token, number);
+          if (
+            doCheckPhone &&
+            doCheckPhone.payload &&
+            doCheckPhone.payload.is_registered === 0
+          ) {
+            console.log(`[+] Phone number is not registered`);
+            const reqLoginCode = await reqLogin(uuid, access_token, number);
+            if (
+              reqLoginCode &&
+              reqLoginCode.payload &&
+              reqLoginCode.payload.code
+            ) {
+              console.log(`[+] Request login code success`);
+              console.log(`[+] Waiting for code...`);
+              const code = await input({
+                type: "text",
+                name: "code",
+                message: "Enter OTP",
+              });
+              if (!code) {
+                console.log("Please enter a valid OTP");
+                return;
+              }
+              if (code) {
+                console.log(`[+] Got code ${code}`);
+                const signUpData = await signUp(
+                  uuid,
+                  access_token,
+                  number,
+                  name.first + " " + name.last,
+                  code,
+                  refferalCode
+                );
+                if (signUpData && signUpData.payload) {
+                  console.log(`[+] Sign up success`);
+                  console.log(`[+] Name: ${name.first} ${name.last}`);
+                  console.log(`[+] Email: ${email}`);
+                  console.log(`[+] Phone: ${number}`);
+                  console.log(`[+] Refferal: ${refferalCode}`);
+                  console.log(`[+] Access Token: ${access_token}`);
+                  console.log(`[+] Refresh Token: ${refresh_token}`);
+                  console.log(`[+] Setting PIN`);
+                  const doPin = await addPin(
+                    uuid,
+                    access_token,
+                    process.env.DEFAULT_PIN
+                  );
+                  if (doPin && doPin.payload) {
+                    console.log(`[+] PIN set successfully`);
+                    console.log(`[+] Setting birthday`);
+
+                    const birthday = dayjs()
+                      .subtract(getRandomNumber(20, 30), "year")
+                      .add(100, "day")
+                      .format("YYYY-MM-DD");
+                    const newEmail =
+                      name.first.toLowerCase().replace(/\s+/g, "") +
+                      `${getRandomNumber(1000000, 9999999)}@gmail.com`;
+                    const changeDataResponse = await changeData(
+                      uuid,
+                      access_token,
+                      name.first + " " + name.last,
+                      newEmail,
+                      birthday
+                    );
+                    if (
+                      changeDataResponse &&
+                      changeDataResponse.status != "success"
+                    ) {
+                      console.log(
+                        `[+] Failed to change data ${JSON.stringify(
+                          changeDataResponse
+                        )}`
+                      );
+                      console.log();
+                      return;
+                    }
+
+                    console.log(`[+] Birthday set to ${birthday}`);
+                    console.log(`[+] Email set to ${newEmail}`);
+                    console.log(`[+] Adding to accounts.json`);
+
+                    if (fs.existsSync("accounts.json")) {
+                      const accounts = fs.readFileSync("accounts.json", "utf8");
+                      const accountsJson = JSON.parse(accounts);
+
+                      if (
+                        accountsJson.find((account) => account.phone === number)
+                      ) {
+                        const index = accountsJson.findIndex(
+                          (account) => account.phone === number
+                        );
+                        accountsJson[index] = {
+                          phone: number,
+                          name: name.first + " " + name.last,
+                          email: newEmail,
+                          birthday: birthday,
+                          status: "Active",
+                          point: 0,
+                          access_token: access_token,
+                          uuid: uuid,
+                          pin: process.env.DEFAULT_PIN,
+                        };
+
+                        await fs.writeFileSync(
+                          "accounts.json",
+                          JSON.stringify(accountsJson, null, 2)
+                        );
+                      } else {
+                        accountsJson.push({
+                          phone: number,
+                          name: name.first + " " + name.last,
+                          email: newEmail,
+                          birthday: birthday,
+                          status: "Active",
+                          point: 0,
+                          access_token: access_token,
+                          uuid: uuid,
+                          pin: process.env.DEFAULT_PIN,
+                        });
+                      }
+                      await fs.writeFileSync(
+                        "accounts.json",
+                        JSON.stringify(accountsJson, null, 2)
+                      );
+                    } else {
+                      await fs.writeFileSync(
+                        "accounts.json",
+                        JSON.stringify(
+                          [
+                            {
+                              phone: number,
+                              name: name.first + " " + name.last,
+                              email: newEmail,
+                              birthday: birthday,
+                              status: "Active",
+                              point: 0,
+                              access_token: access_token,
+                              uuid: uuid,
+                              pin: process.env.DEFAULT_PIN,
+                            },
+                          ],
+                          null,
+                          2
+                        )
+                      );
+                    }
+
+                    console.log(`[+] Saved to accounts.json`);
+                    console.log();
+                  } else {
+                    console.log(`[+] Failed to add pin`);
+                    console.log();
+                    return;
+                  }
+                }
+              } else {
+                console.log(`[+] Failed to get code`);
+                console.log();
+                return;
+              }
+            } else {
+              console.log(`[+] Failed to request login code`);
+              console.log();
+              return;
+            }
+          } else {
+            console.log(`Phone number is already registered`);
+            return;
+          }
+        } else {
+          console.log(`[+] Failed to get token`);
+          console.log();
+          return;
+        }
+      } else {
+        console.log(`[+] Failed to get random user data`);
+        console.log();
+        return;
+      }
+    } else if (choice === "4") {
       console.clear();
       console.log("Create Account + SMSHub");
       console.log();
@@ -837,27 +1053,32 @@ const randomUser = async () => {
                     } else {
                       console.log(`[+] Failed to add pin`);
                       console.log();
+                      await setStatus(orderId, "8");
                       continue;
                     }
                   }
                 } else {
                   console.log(`[+] Failed to get code`);
                   console.log();
+                  await setStatus(orderId, "8");
                   continue;
                 }
               } else {
                 console.log(`[+] Failed to request login code`);
                 console.log(reqLoginCode);
                 console.log();
+                await setStatus(orderId, "8");
                 continue;
               }
             } else {
               console.log(`Phone number is already registered`);
+              await setStatus(orderId, "8");
               continue;
             }
           } else {
             console.log(`[+] Failed to get token`);
             console.log();
+            await setStatus(orderId, "8");
             continue;
           }
         } else {
@@ -866,7 +1087,7 @@ const randomUser = async () => {
           continue;
         }
       }
-    } else if (choice === "4") {
+    } else if (choice === "5") {
       console.clear();
       console.log("Check Voucher");
       console.log();
