@@ -24,6 +24,14 @@ const getBalanceTokoclaude = async () => {
   return response;
 };
 
+const getBalanceTurbootp = async () => {
+  const send = await fetch("https://turbootp.com/api/get-profile/" + API_KEY, {
+    method: "GET",
+  });
+  const response = await send.json();
+  return response;
+};
+
 const getBalance = async () => {
   const send = await fetch(
     "https://smshub.org/stubs/handler_api.php?api_key=" +
@@ -40,6 +48,17 @@ const getBalance = async () => {
 const getNumberTokoclaude = async () => {
   const send = await fetch(
     "https://tokoclaude.com/api/set-orders/" + API_KEY + "/346",
+    {
+      method: "GET",
+    }
+  );
+  const response = await send.json();
+  return response;
+};
+
+const getNumberTurbootp = async () => {
+  const send = await fetch(
+    "https://turbootp.com/api/set-orders/" + API_KEY + "/346",
     {
       method: "GET",
     }
@@ -72,6 +91,17 @@ const getCodeTokoclaude = async (id) => {
   return response;
 };
 
+const getCodeTurbootp = async (id) => {
+  const send = await fetch(
+    "https://turbootp.com/api/get-orders/" + API_KEY + "/" + id,
+    {
+      method: "GET",
+    }
+  );
+  const response = await send.json();
+  return response;
+};
+
 const getCode = async (id) => {
   const send = await fetch(
     "https://smshub.org/stubs/handler_api.php?api_key=" +
@@ -88,6 +118,23 @@ const getCode = async (id) => {
 
 const setStatusTokoclaude = async (id, status) => {
   let endpoint = "https://tokoclaude.com/api/";
+  if (status === "6") {
+    endpoint += "finish-orders/" + API_KEY + "/" + id;
+  } else if (status === "8") {
+    endpoint += "cancle-orders/" + API_KEY + "/" + id;
+  } else {
+    endpoint += "resend-order/" + API_KEY + "/" + id;
+  }
+
+  const send = await fetch(endpoint, {
+    method: "GET",
+  });
+  const response = await send.json();
+  return response;
+};
+
+const setStatusTurbootp = async (id, status) => {
+  let endpoint = "https://turbootp.com/api/";
   if (status === "6") {
     endpoint += "finish-orders/" + API_KEY + "/" + id;
   } else if (status === "8") {
@@ -444,7 +491,8 @@ const randomUser = async () => {
   console.log("3. Create Account Manual OTP");
   console.log("4. Create Account + SMSHub");
   console.log("5. Create Account + Tokoclaude");
-  console.log("6. Check Voucher");
+  console.log("6. Create Account + TurboOTP");
+  console.log("7. Check Voucher");
   console.log();
 
   const choice = await input({
@@ -452,8 +500,8 @@ const randomUser = async () => {
     name: "choice",
     message: "Select an option",
     validate: (value) => {
-      if (isNaN(value) || value < 1 || value > 6) {
-        return "Please enter a valid number between 1 and 6";
+      if (isNaN(value) || value < 1 || value > 7) {
+        return "Please enter a valid number between 1 and 7";
       }
       return true;
     },
@@ -1408,6 +1456,265 @@ const randomUser = async () => {
         }
       }
     } else if (choice === "6") {
+      console.clear();
+      console.log("Create Account + Turbootp");
+      console.log();
+      const howMany = await input({
+        type: "number",
+        name: "howMany",
+        message: "How many accounts you want to create?",
+        validate: (value) => {
+          if (isNaN(value) || value < 1) {
+            return "Please enter a valid number";
+          }
+          return true;
+        },
+      });
+      const refferalCode = await input({
+        type: "text",
+        name: "refferal",
+        message: "Enter Refferal Code",
+      });
+      console.log();
+      console.log(
+        `Creating ${howMany} accounts with refferal code ${refferalCode}`
+      );
+      console.log();
+      for (let i = 0; i < howMany; i++) {
+        const data = await randomUser();
+        if (data && data.results) {
+          const { name, gender, email } = data.results[0];
+          const balance = await getBalanceTurbootp();
+          const currentBalance = parseFloat(balance.data.data.saldo);
+
+          console.log(`[+] Current balance: ${currentBalance}`);
+
+          let orderId, number;
+          try {
+            const numbers = await getNumberTurbootp();
+            if (!numbers.success) {
+              if (numbers.data.messages) {
+                console.log(`Response from Turbootp: ${numbers.data.messages}`);
+                continue;
+              }
+            }
+            orderId = numbers.data.data.order_id;
+            number = numbers.data.data.number;
+          } catch (error) {
+            console.log(`[+] Failed to get numbers`);
+            console.log();
+            continue;
+          }
+          const uuid = v4();
+          const token = await getToken(uuid);
+          if (token && token.payload) {
+            const access_token = token.payload.access_token;
+            const refresh_token = token.payload.refresh_token;
+
+            const doCheckPhone = await checkPhone(uuid, access_token, number);
+            if (
+              doCheckPhone &&
+              doCheckPhone.payload &&
+              doCheckPhone.payload.is_registered === 0
+            ) {
+              console.log(`[+] Phone number is not registered`);
+              const reqLoginCode = await reqLogin(uuid, access_token, number);
+              if (
+                reqLoginCode &&
+                reqLoginCode.payload &&
+                reqLoginCode.payload.code
+              ) {
+                console.log(`[+] Request login code success`);
+                console.log(`[+] Waiting for code...`);
+                let code;
+                let i = 0;
+                while (i < 250) {
+                  const checkCode = await getCodeTurbootp(orderId);
+                  if (checkCode && checkCode.success) {
+                    if (checkCode.data.data[0].sms != null) {
+                      code = JSON.parse(checkCode.data.data[0].sms)[0];
+                      code = code.sms.match(/\d{5}/g).join("");
+                      break;
+                    }
+                  }
+                  await new Promise((resolve) => setTimeout(resolve, 5000));
+                  i++;
+                }
+                if (code) {
+                  console.log(`[+] Got code ${code}`);
+                  const signUpData = await signUp(
+                    uuid,
+                    access_token,
+                    number,
+                    name.first + " " + name.last,
+                    code,
+                    refferalCode
+                  );
+                  if (
+                    signUpData &&
+                    signUpData.payload &&
+                    signUpData.payload.text === "Success"
+                  ) {
+                    console.log(`[+] Sign up success`);
+                    console.log(`[+] Name: ${name.first} ${name.last}`);
+                    console.log(`[+] Email: ${email}`);
+                    console.log(`[+] Phone: ${number}`);
+                    console.log(`[+] Refferal: ${refferalCode}`);
+                    console.log(`[+] Access Token: ${access_token}`);
+                    console.log(`[+] Refresh Token: ${refresh_token}`);
+                    await setStatusTurbootp(orderId, "6");
+                    console.log(`[+] Setting PIN`);
+                    const doPin = await addPin(
+                      uuid,
+                      access_token,
+                      process.env.DEFAULT_PIN
+                    );
+                    if (doPin && doPin.payload) {
+                      console.log(`[+] PIN set successfully`);
+                      console.log(`[+] Setting birthday`);
+
+                      const birthday = dayjs()
+                        .subtract(getRandomNumber(20, 30), "year")
+                        .add(100, "day")
+                        .format("YYYY-MM-DD");
+                      const newEmail =
+                        name.first.toLowerCase().replace(/\s+/g, "") +
+                        `${getRandomNumber(1000000, 9999999)}@gmail.com`;
+                      const changeDataResponse = await changeData(
+                        uuid,
+                        access_token,
+                        name.first + " " + name.last,
+                        newEmail,
+                        birthday
+                      );
+                      if (
+                        changeDataResponse &&
+                        changeDataResponse.status != "success"
+                      ) {
+                        console.log(
+                          `[+] Failed to change data ${JSON.stringify(
+                            changeDataResponse
+                          )}`
+                        );
+                        console.log();
+                        continue;
+                      }
+
+                      console.log(`[+] Birthday set to ${birthday}`);
+                      console.log(`[+] Email set to ${newEmail}`);
+                      console.log(`[+] Adding to accounts.json`);
+
+                      if (fs.existsSync("accounts.json")) {
+                        const accounts = fs.readFileSync(
+                          "accounts.json",
+                          "utf8"
+                        );
+                        const accountsJson = JSON.parse(accounts);
+
+                        if (
+                          accountsJson.find(
+                            (account) => account.phone === number
+                          )
+                        ) {
+                          const index = accountsJson.findIndex(
+                            (account) => account.phone === number
+                          );
+                          accountsJson[index] = {
+                            phone: number,
+                            name: name.first + " " + name.last,
+                            email: newEmail,
+                            birthday: birthday,
+                            status: "Active",
+                            point: 0,
+                            access_token: access_token,
+                            uuid: uuid,
+                            pin: process.env.DEFAULT_PIN,
+                          };
+
+                          await fs.writeFileSync(
+                            "accounts.json",
+                            JSON.stringify(accountsJson, null, 2)
+                          );
+                        } else {
+                          accountsJson.push({
+                            phone: number,
+                            name: name.first + " " + name.last,
+                            email: newEmail,
+                            birthday: birthday,
+                            status: "Active",
+                            point: 0,
+                            access_token: access_token,
+                            uuid: uuid,
+                            pin: process.env.DEFAULT_PIN,
+                          });
+                        }
+                        await fs.writeFileSync(
+                          "accounts.json",
+                          JSON.stringify(accountsJson, null, 2)
+                        );
+                      } else {
+                        await fs.writeFileSync(
+                          "accounts.json",
+                          JSON.stringify(
+                            [
+                              {
+                                phone: number,
+                                name: name.first + " " + name.last,
+                                email: newEmail,
+                                birthday: birthday,
+                                status: "Active",
+                                point: 0,
+                                access_token: access_token,
+                                uuid: uuid,
+                                pin: process.env.DEFAULT_PIN,
+                              },
+                            ],
+                            null,
+                            2
+                          )
+                        );
+                      }
+
+                      console.log(`[+] Saved to accounts.json`);
+                      console.log();
+                    } else {
+                      console.log(`[+] Failed to add pin`);
+                      console.log();
+                      await setStatusTurbootp(orderId, "8");
+                      continue;
+                    }
+                  }
+                } else {
+                  console.log(`[+] Failed to get code`);
+                  console.log();
+                  await setStatusTurbootp(orderId, "8");
+                  continue;
+                }
+              } else {
+                console.log(`[+] Failed to request login code`);
+                console.log(reqLoginCode);
+                console.log();
+                await setStatusTurbootp(orderId, "8");
+                continue;
+              }
+            } else {
+              console.log(`Phone number is already registered`);
+              await setStatusTurbootp(orderId, "8");
+              continue;
+            }
+          } else {
+            console.log(`[+] Failed to get token`);
+            console.log();
+            await setStatusTurbootp(orderId, "8");
+            continue;
+          }
+        } else {
+          console.log(`[+] Failed to get random user data`);
+          console.log();
+          continue;
+        }
+      }
+    } else if (choice === "7") {
       console.clear();
       console.log("Check Voucher");
       console.log();
