@@ -210,12 +210,11 @@ const changeData = async (
     method: "PUT",
     headers: {
       Host: "api.fore.coffee",
-      "Appsflyer-Id": "1712110677185-8189413",
       "Content-Type": "application/json",
       "Country-Id": "1",
       Accept: "*/*",
       "Appsflyer-Advertising-Id": "95B89FED-69A8-4D99-9751-48B54339738E",
-      "App-Version": "4.1.24",
+      "App-Version": process.env.FORE_VERSION,
       "Device-Id": deviceId,
       "Accept-Language": "id-ID;q=1.0, en-ID;q=0.9",
       "Accept-Encoding": "gzip, deflate, br",
