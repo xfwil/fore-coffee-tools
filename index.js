@@ -178,13 +178,10 @@ const getToken = async (deviceId) => {
       "Device-Id": deviceId,
       "Accept-Encoding": "gzip, deflate, br",
       "Accept-Language": "id-ID;q=1.0, en-ID;q=0.9",
-      Platform: "ios",
+      Platform: "android",
       "If-None-Match": 'W/"d6-nXAYxfa/enhSCHRgcHtzJJDI7Nk"',
-      "User-Agent":
-        "Fore Coffee/" +
-        process.env.FORE_VERSION +
-        " (coffee.fore.fore; build:1128; iOS 17.4.1) Alamofire/4.9.1",
-      "Os-Version": "17.4.1",
+      "User-Agent": "okhttp/4.11.0",
+      "Os-Version": "13",
       "Secret-Key": "0kFe6Oc3R1eEa2CpO2FeFdzElp",
     },
   });
@@ -222,13 +219,13 @@ const changeData = async (
       "Device-Id": deviceId,
       "Accept-Language": "id-ID;q=1.0, en-ID;q=0.9",
       "Accept-Encoding": "gzip, deflate, br",
-      Platform: "ios",
+      Platform: "android",
       Language: "ID",
       "Access-Token": accessToken,
       Timezone: "+07:00",
       "User-Agent":
-        "Fore Coffee/4.1.24 (coffee.fore.fore; build:1128; iOS 17.4.1) Alamofire/4.9.1",
-      "Os-Version": "17.4.1",
+        "Fore Coffee/4.1.24 (coffee.fore.fore; build:1128; iOS 13) Alamofire/4.9.1",
+      "Os-Version": "13",
     },
     body: JSON.stringify(postdata),
   });
@@ -250,15 +247,12 @@ const addPin = async (deviceId, accessToken, pin) => {
       "Device-Id": deviceId,
       "Accept-Language": "id-ID;q=1.0, en-ID;q=0.9",
       "Accept-Encoding": "gzip, deflate, br",
-      Platform: "ios",
+      Platform: "android",
       Language: "ID",
       "Access-Token": accessToken,
       Timezone: "+07:00",
-      "User-Agent":
-        "Fore Coffee/" +
-        process.env.FORE_VERSION +
-        " (coffee.fore.fore; build:1128; iOS 17.4.1) Alamofire/4.9.1",
-      "Os-Version": "17.4.1",
+      "User-Agent": "okhttp/4.11.0",
+      "Os-Version": "13",
     },
     body: JSON.stringify({
       confirm_pin: pin,
@@ -283,15 +277,12 @@ const checkPhone = async (deviceId, accessToken, phoneNumber) => {
       "Device-Id": deviceId,
       "Accept-Language": "id-ID;q=1.0, en-ID;q=0.9",
       "Accept-Encoding": "gzip, deflate, br",
-      Platform: "ios",
+      Platform: "android",
       Language: "ID",
       "Access-Token": accessToken,
       Timezone: "+07:00",
-      "User-Agent":
-        "Fore Coffee/" +
-        process.env.FORE_VERSION +
-        " (coffee.fore.fore; build:1128; iOS 17.4.1) Alamofire/4.9.1",
-      "Os-Version": "17.4.1",
+      "User-Agent": "okhttp/4.11.0",
+      "Os-Version": "13",
     },
     body: JSON.stringify({ phone: "+" + phoneNumber }),
   });
@@ -313,15 +304,12 @@ const reqLogin = async (deviceId, accessToken, phoneNumber) => {
       "Device-Id": deviceId,
       "Accept-Language": "id-ID;q=1.0, en-ID;q=0.9",
       "Accept-Encoding": "gzip, deflate, br",
-      Platform: "ios",
+      Platform: "android",
       Language: "ID",
       "Access-Token": accessToken,
       Timezone: "+07:00",
-      "User-Agent":
-        "Fore Coffee/" +
-        process.env.FORE_VERSION +
-        " (coffee.fore.fore; build:1128; iOS 17.4.1) Alamofire/4.9.1",
-      "Os-Version": "17.4.1",
+      "User-Agent": "okhttp/4.11.0",
+      "Os-Version": "13",
     },
     body: JSON.stringify({
       method: "",
@@ -353,15 +341,12 @@ const signUp = async (
       "Device-Id": deviceId,
       "Accept-Language": "id-ID;q=1.0, en-ID;q=0.9",
       "Accept-Encoding": "gzip, deflate, br",
-      Platform: "ios",
+      Platform: "android",
       Language: "ID",
       "Access-Token": accessToken,
       Timezone: "+07:00",
-      "User-Agent":
-        "Fore Coffee/" +
-        process.env.FORE_VERSION +
-        " (coffee.fore.fore; build:1128; iOS 17.4.1) Alamofire/4.9.1",
-      "Os-Version": "17.4.1",
+      "User-Agent": "okhttp/4.11.0",
+      "Os-Version": "13",
     },
     body: JSON.stringify({
       whatsapp: 0,
@@ -389,15 +374,12 @@ const signInWithPIN = async (deviceId, accessToken, phoneNumber, pin) => {
       "Device-Id": deviceId,
       "Accept-Language": "id-ID;q=1.0, en-ID;q=0.9",
       "Accept-Encoding": "gzip, deflate, br",
-      Platform: "ios",
+      Platform: "android",
       Language: "ID",
       "Access-Token": accessToken,
       Timezone: "+07:00",
-      "User-Agent":
-        "Fore Coffee/" +
-        process.env.FORE_VERSION +
-        " (coffee.fore.fore; build:1128; iOS 17.4.1) Alamofire/4.9.1",
-      "Os-Version": "17.4.1",
+      "User-Agent": "okhttp/4.11.0",
+      "Os-Version": "13",
     },
     body: JSON.stringify({
       phone: "+" + phoneNumber,
@@ -424,15 +406,12 @@ const profileInfo = async (deviceId, accessToken) => {
         "Device-Id": deviceId,
         "Accept-Language": "id-ID;q=1.0, en-ID;q=0.9",
         "Accept-Encoding": "gzip, deflate, br",
-        Platform: "ios",
+        Platform: "android",
         Language: "ID",
         "Access-Token": accessToken,
         Timezone: "+07:00",
-        "User-Agent":
-          "Fore Coffee/" +
-          process.env.FORE_VERSION +
-          " (coffee.fore.fore; build:1128; iOS 17.4.1) Alamofire/4.9.1",
-        "Os-Version": "17.4.1",
+        "User-Agent": "okhttp/4.11.0",
+        "Os-Version": "13",
       },
     }
   );
@@ -455,15 +434,12 @@ const checkVouchers = async (deviceId, accessToken) => {
         "Device-Id": deviceId,
         "Accept-Language": "id-ID;q=1.0, en-ID;q=0.9",
         "Accept-Encoding": "gzip, deflate, br",
-        Platform: "ios",
+        Platform: "android",
         Language: "ID",
         "Access-Token": accessToken,
         Timezone: "+07:00",
-        "User-Agent":
-          "Fore Coffee/" +
-          process.env.FORE_VERSION +
-          " (coffee.fore.fore; build:1128; iOS 17.4.1) Alamofire/4.9.1",
-        "Os-Version": "17.4.1",
+        "User-Agent": "okhttp/4.11.0",
+        "Os-Version": "13",
       },
     }
   );
