@@ -223,8 +223,7 @@ const changeData = async (
       Language: "ID",
       "Access-Token": accessToken,
       Timezone: "+07:00",
-      "User-Agent":
-        "Fore Coffee/4.1.24 (coffee.fore.fore; build:1128; iOS 13) Alamofire/4.9.1",
+      "User-Agent": "okhttp/4.11.0",
       "Os-Version": "13",
     },
     body: JSON.stringify(postdata),
